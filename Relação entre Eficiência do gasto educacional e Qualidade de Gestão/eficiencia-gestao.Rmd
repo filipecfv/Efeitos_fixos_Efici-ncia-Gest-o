@@ -1,0 +1,79 @@
+
+# agregação
+```{r}
+library(dplyr)
+library(haven)
+
+effs = read.csv("eficiencias(noNA).csv")
+gestao = read_dta("gestao_2013-2015.dta")
+eff_gestao = left_join(effs, gestao, by = c("municipio" = "codibge7", "ano" = "ano"))
+write.csv(eff_gestao, file = "eff_gestao(noNA).csv", row.names = FALSE)
+
+effsLog = read.csv("eficienciasLog(NoNA).csv")
+eff_gestaoLog = left_join(effsLog, gestao, by = c("municipio" = "codibge7", "ano" = "ano"))
+write.csv(eff_gestaoLog, file = "eff_gestaoLog(noNA).csv", row.names = FALSE)
+
+eff_gestao = read.csv("eff_gestao(noNA).csv")
+eff_gestaolog = read.csv("eff_gestaoLog(noNA).csv")
+
+```
+
+# estimação 
+```{r}
+?fixest
+library(fixest)
+
+LP5 = feols(ef_LP5 ~ i_mag | ano + municipio,  data = eff_gestao) 
+summary(LP5, vcov = ~municipio)
+
+LP9 = feols(ef_LP9 ~ i_mag | ano + municipio,  data = eff_gestao) 
+summary(LP9, vcov = ~municipio)
+
+MT5 = feols(ef_MT5 ~ i_mag | ano + municipio,  data = eff_gestao)
+summary(MT5, vcov = ~municipio)
+
+MT9 = feols(ef_MT9 ~ i_mag | ano + municipio,  data = eff_gestao)
+summary(MT9, vcov = ~municipio)
+
+abandono = feols(ef_abandono ~ i_mag | ano + municipio,  data = eff_gestao)
+summary(abandono, vcov = ~municipio)
+
+etable(LP5, LP9, MT5, MT9, abandono, vcov = ~municipio, tex = TRUE)
+
+
+```
+
+```{r}
+?fixest
+library(fixest)
+
+LP5log = feols(ef_LP5 ~ i_mag | ano + municipio,  data = eff_gestaolog) 
+summary(LP5log, vcov = ~municipio)
+
+LP9log = feols(ef_LP9 ~ i_mag | ano + municipio,  data = eff_gestaolog) 
+summary(LP9log, vcov = ~municipio)
+
+MT5log = feols(ef_MT5 ~ i_mag | ano + municipio,  data = eff_gestaolog)
+summary(MT5log, vcov = ~municipio)
+
+MT9log = feols(ef_MT9 ~ i_mag | ano + municipio,  data = eff_gestaolog)
+summary(MT9log, vcov = ~municipio)
+
+abandonolog = feols(ef_aband ~ i_mag | ano + municipio,  data = eff_gestaolog)
+summary(abandonolog, vcov = ~municipio)
+
+etable(LP5log, LP9log, MT5log, MT9log, abandonolog, vcov = ~municipio)
+
+```
+```{r}
+notas = feols(((ef_LP5+ef_LP9+ef_MT5+ef_MT9+ef_abandono)/4) ~ i_mag | ano + municipio,  data = eff_gestao) 
+notaslog = feols(((ef_LP5+ef_LP9+ef_MT5+ef_MT9+ef_aband)/4) ~ i_mag | ano + municipio,  data = eff_gestaolog) 
+
+notas2 = feols(log((ef_LP5+ef_LP9+ef_MT5+ef_MT9+ef_abandono)/4) ~ log(i_mag) | ano + municipio,  data = eff_gestao) 
+notaslog2 = feols(log((ef_LP5+ef_LP9+ef_MT5+ef_MT9+ef_aband)/4) ~ log(i_mag) | ano + municipio,  data = eff_gestaolog) 
+
+etable(notas, notaslog, notas2, notaslog2, vcov = ~municipio)
+
+esttex(notas, notaslog, notas2, notaslog2, vcov = ~municipio)
+```
+
